@@ -46,13 +46,13 @@ function textHeader() {
 function textBody() {
   textFont(workSansBold);
   textSize(36);
-  text("Lorem ipsum\ndolor sit amet", colX(0), height-422, 3 * colW + 2 * gutter);
+  text("Migration flow global overview", colX(0), height-422, 3 * colW + 2 * gutter);
 
   textFont("Trebuchet MS");
   textStyle(BOLD);
   textSize(16);
   text(
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "This Chord diagram analyzes the flow of sports migration between continents, making a distinction between the athlete's departure and arrival continents.",
     colX(0), height-350, 3 * colW + 2 * gutter);
 }
 
@@ -60,6 +60,8 @@ function breadCrumb() {
   textFont(workSansBold);
   textSize(24);
   text("Introduction", colX(0), height-37);
+  fill("#8E8E8E"); 
+  text(" < Global", colX(0)+textWidth("Introduction"), height-37);
 }
 
 //per rendere la griglia visibile
@@ -83,7 +85,7 @@ function getHoveredLink() {
   if (mouseX >= x2 && mouseX <= x2 + textWidth("About dataset")) return "aboutDataset.html";
 
   // Controllo fascia in basso (Introduction)
-  if (mouseX >= colX(0) && mouseX <= colX(0) + textWidth("Introduction")) return "introduction.html";
+  if (mouseX >= colX(0) && mouseX <= colX(0) + textWidth("Introduction") && mouseY >= height - 70 && mouseY<= height - 35) return "introduction.html";
   return null;
 }
 
