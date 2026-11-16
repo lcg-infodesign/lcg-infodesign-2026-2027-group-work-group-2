@@ -117,19 +117,19 @@ function drawColoredOlympic(x, y, size, morph) {
   pen(YELLOW, morph);
   bezier(1.52, -0.45, 1.42, -0.09, 1.35, 0.14, 1.13, 0.13);
   // m
-  pen(BLUE, morph);
-  line(1.77, -0.44, 1.77, -0.04);
-  pen(GREEN, morph);
-  arc(1.93, -0.27, 0.34, 0.33, PI, TWO_PI);
-  line(2.1, -0.27, 2.1, -0.04);
   pen(RED, morph);
   arc(2.26, -0.27, 0.31, 0.33, PI, TWO_PI);
   line(2.42, -0.27, 2.42, -0.04);
+  pen(GREEN, morph);
+  arc(1.94, -0.27, 0.32, 0.33, PI + 0.15, TWO_PI);
+  line(2.1, -0.27, 2.1, -0.04);
+  pen(BLUE, morph);
+  line(1.77, -0.44, 1.77, -0.04);
   // p
-  pen(YELLOW, morph);
-  line(2.71, -0.45, 2.71, 0.16);
   pen(BLUE, morph);
   arc(2.9, -0.26, 0.38, 0.31, radians(-165), radians(160));
+  pen(YELLOW, morph);
+  line(2.71, -0.45, 2.71, 0.16);
   // i
   pen(RED, morph);
   line(3.34, -0.44, 3.34, -0.06);
@@ -224,7 +224,7 @@ function drawButton(show) {
   textFont(workSansBold);
   textSize(b.h * 0.38);
   textAlign(CENTER, CENTER);
-  text("Start exploring", 0, 0);
+  text("Start exploring", 0, -b.h * 0.03);
   pop();
 }
 
