@@ -12,7 +12,7 @@ async function setup() {
   createCanvas(windowWidth, windowHeight);
   workSans = await loadFont("assets/WorkSans-Regular.ttf");
   workSansBold = await loadFont("assets/WorkSans-Bold.ttf");
-  noLoop();
+  redraw();
 }
 
 function draw() {
@@ -21,7 +21,7 @@ function draw() {
     //testo
     push();
     fill(255);
-    textAlign(CENTER, TOP);
+    textAlign(CENTER);
     textFont(workSansBold);
     textSize(80);                    
     text("What is Olympic", width / 2, height / 2);
