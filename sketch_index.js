@@ -2,6 +2,15 @@ const BG = "#190A32";
 
 // ordine dall'alto verso il basso (uguale su entrambi i lati)
 const CONTINENTI = ["Americas", "Oceania", "Africa", "Asia", "Europe"];
+// nomi storici che oggi corrispondono a un altro paese:
+const STESSO_PAESE = {
+  "Federal Republic of Germany": "Germany",
+  "German Democratic Republic": "Germany",
+  "Bohemia": "Czech Republic",
+  "Unified Team": "Russia",
+  "Soviet Union": "Russia",
+  "Yugoslavia": "Serbia",
+};
 
 //palette
 const COLORI = {
@@ -61,8 +70,11 @@ function contaFlussi() {
     if (tabella.getString(i, "year") !== annoScelto) continue;
     // salta le righe senza continente o con "Altro"
     if (!CONTINENTI.includes(provenienza) || !CONTINENTI.includes(arrivo)) continue;
-    // non si sofferma quando provenienza=arrivo
-    if (provenienza === arrivo) continue;
+    // conta solo chi gareggia per un paese diverso da quello in cui è nato
+    let paeseNascita = tabella.getString(i, "birth_country_full");
+    const paeseGara = tabella.getString(i, "gapminder_countryname");
+    if (STESSO_PAESE[paeseNascita]) paeseNascita = STESSO_PAESE[paeseNascita]; // traduco i nomi storici
+    if (paeseNascita === paeseGara) continue; // stesso paese = non è migrato, salto
 
     //aumenta il conteggio del numero di atleti per ogni riga in cui si sofferma
     flussi[provenienza][arrivo]++;
