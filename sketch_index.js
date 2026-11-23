@@ -138,6 +138,7 @@ function draw() {
   //da ricorrenti.js
   disegnaBottoni(); // prima del translate: usa le coordinate normali
   disegnaNav();
+  disegnaBreadCrumb();
 
   //posizione del grafico
   const r = min(width, height) * 0.35; //dermino raggio del cerchio //AL MOMENTO ADAPTIVE

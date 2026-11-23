@@ -34,14 +34,7 @@ function disegnaBottoni() {
     x += w + spazio;
   }
 }
-function mousePressed() {
-  for (const b of bottoni) {
-    if (mouseX > b.x && mouseX < b.x + b.w && mouseY > b.y && mouseY < b.y + b.h) {
-      annoScelto = b.anno;
-      aggiornaDati();
-    }
-  }
-}
+
 
 // pagine raggiungibili dai bottoni in alto
 const PAGINE = [
@@ -51,6 +44,16 @@ const PAGINE = [
 const COLONNE = 5;      // stessa griglia dei bottoni degli anni
 let bottoniNav = [];    // posizione dei bottoni in alto
 let bottoni = [];       // (spostalo qui dallo sketch, vedi sotto)
+
+// misure comuni a tutti i bottoni, ricalcolate a ogni frame
+function griglia() {
+  const margine = min(48, width * 0.025);
+  const disponibile = width - 2 * margine;
+  const w = disponibile * 0.19;
+  const h = w / 5.5;
+  const spazio = (disponibile - COLONNE * w) / (COLONNE - 1);
+  return { margine, w, h, spazio };
+}
 
 function disegnaNav() {
   const margine = min(48, width * 0.025);
@@ -95,10 +98,97 @@ function mousePressed() {
       aggiornaDati();
     }
   }
+
   // bottoni di navigazione
   for (const b of bottoniNav) {
     if (mouseX > b.x && mouseX < b.x + b.w && mouseY > b.y && mouseY < b.y + b.h) {
       window.location.href = b.link; // apre la pagina
     }
+  }
+
+  // breadcrumb
+  for (const b of bottoniBreadcrumb) {
+    if (mouseX > b.x && mouseX < b.x + b.w && mouseY > b.y && mouseY < b.y + b.h) {
+      window.location.href = b.link;
+    }
+  }
+}
+
+// nome del file ed etichette nome mostrato nel breadcrumb
+const PAGINE_SITO = {
+  "introduction.html": "Introduction",
+  "index.html": "Global",
+  "continents.html": "Continents",
+  "comparison.html": "Comparison",
+  "aboutUs.html": "About Us",
+  "aboutDataset.html": "About Dataset",
+};
+
+let percorso = []; // file visitati in ordine
+let bottoniBreadcrumb = []; // posizione delle voci cliccabili
+
+// nome del file della pagina aperta (es. "global.html")
+function fileCorrente() {
+  const file = window.location.pathname.split("/").pop(); //spiegato da Claude per segnare il percorso
+  return file === "" ? "index.html" : file;
+}
+
+// aggiorna il percorso all'apertura della pagina
+function aggiornaPercorso() {
+  const file = fileCorrente();
+  if (!PAGINE_SITO[file]) return;
+
+  try {
+    percorso = JSON.parse(sessionStorage.getItem("percorso")) || []; //spiegato da Claude per selezionare il percorso
+  } catch (e) {
+    percorso = [];
+  }
+
+  const i = percorso.indexOf(file);
+  if (i !== -1) percorso = percorso.slice(0, i + 1); // già visitata/se torno in dietro: la tolgo
+  else percorso.push(file); // nuova: la aggiungo in fondo
+
+  try {
+    sessionStorage.setItem("percorso", JSON.stringify(percorso));
+  } catch (e) {}
+}
+aggiornaPercorso(); // al caricamento della pagina
+
+function disegnaBreadCrumb() {
+  const { margine, h } = griglia();
+  let x = margine;
+  const y = margine * 0.5 + h / 2; // come About
+  const dimensione = h * 0.45; 
+  const gap = dimensione * 0.6; // spazio prima e dopo il >
+
+  bottoniBreadcrumb = [];
+  textFont(workSans);
+  textSize(dimensione);
+  textAlign(LEFT, CENTER);
+  noStroke();
+
+  for (let i = 0; i < percorso.length; i++) {
+    const nome = PAGINE_SITO[percorso[i]];
+    const ultima = i === percorso.length - 1;
+    const conFreccia = i > 0; // la prima voce non ha la freccia davanti
+
+    // larghezza totale della voce: > + nome
+    const wFreccia = conFreccia ? textWidth(">") + gap : 0;
+    const wVoce = wFreccia + textWidth(nome);
+
+    const sopra = mouseX > x && mouseX < x + wVoce && mouseY > y - h / 2 && mouseY < y + h / 2;
+
+    // colore unico per freccia e parola
+    if (ultima) fill(150); // pagina corrente: grigia
+    else if (sopra) fill("#5c45d2");  // hover
+    else fill(255); // pagina passata: bianca
+
+    if (conFreccia) text(">", x, y);
+    text(nome, x + wFreccia, y);
+
+    // cliccabile solo se non è la pagina corrente
+    if (!ultima) bottoniBreadcrumb.push({ link: percorso[i], x, y: y - h / 2, w: wVoce, h });
+
+    x += wVoce + gap; // spazio prima della voce successiva
   }
 }

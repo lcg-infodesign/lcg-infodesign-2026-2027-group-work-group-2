@@ -5,5 +5,8 @@ async function setup() {
 
 function draw() {
   background("#190A32");
+  
+  //da ricorrenti.js
   disegnaNav();
+  disegnaBreadCrumb();
 }
