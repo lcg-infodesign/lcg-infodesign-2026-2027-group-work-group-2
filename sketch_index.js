@@ -23,7 +23,13 @@ const COLORI = {
 
 const GAP_CENTRO = 0.20; // vuoto in alto e in basso tra i due semicerchi (radianti)
 const GAP_CONTINENTI = 0.03; // spazio tra un continente e l'altro (arco)
-const ANNI = ["2008", "2012", "2016", "2020", "2024"];
+const ANNI = [
+  { anno: "2008", etichetta: "Beijing 2008" },
+  { anno: "2012", etichetta: "London 2012" },
+  { anno: "2016", etichetta: "Rio de Janeiro 2016" },
+  { anno: "2020", etichetta: "Tokyo 2020" },
+  { anno: "2024", etichetta: "Paris 2024" },
+];
 
 let tabella;
 let flussi = {};         
@@ -40,6 +46,7 @@ let bottoni = []; // posizione di ogni bottone, ci serve per capire dove utente 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   tabella = await loadTable("assets/olympic.csv", ",", true);
+  workSans = await loadFont("assets/WorkSans-Bold.ttf");
   aggiornaDati();
 }
 
@@ -242,48 +249,5 @@ function disegnaNastro(u1, u2, v1, v2, r, colore) {
     vertex(p.x, p.y);
   }
   endShape(CLOSE);
-}
-
-//DA METTERE NELLA MASTRO (da prendere larghezza massima finestra e ridistribuirli nello spazio)
-function disegnaBottoni() {
-  const h = min(width, height) * 0.045; // altezza bottone
-  const w = h * 2.6; // larghezza
-  const spazio = h * 0.4;
-  const totW = ANNI.length * w + (ANNI.length - 1) * spazio;
-  let x = width / 2 - totW / 2;          // fila centrata
-  const y = height - h * 1.6;            // in basso
-
-  bottoni = [];
-  textFont("Work Sans");
-  textSize(h * 0.45);
-  textAlign(CENTER, CENTER);
-  for (const anno of ANNI) {
-    const scelto = anno === annoScelto;
-    const sopra = mouseX > x && mouseX < x + w && mouseY > y && mouseY < y + h;
-
-    noStroke();
-    if (scelto) fill(255); // scelto: pieno bianco
-    else if (sopra) fill("#5c45d2"); // mouse sopra: leggermente acceso
-    else fill("#281977"); //bottone normale
-    rect(x, y, w, h, h / 2); // h/2 = angoli tondi
-
-    noStroke();
-    if (scelto) fill("#281977"); // scelto: pieno bianco
-    else fill("#ffffff"); //bottone normale
-    text(anno, x + w / 2, y + h / 2);
-
-    bottoni.push({ anno, x, y, w, h });
-    x += w + spazio; 
-  }
-}
-
-//NELLA MASTRO
-function mousePressed() {
-  for (const b of bottoni) {
-    if (mouseX > b.x && mouseX < b.x + b.w && mouseY > b.y && mouseY < b.y + b.h) {
-      annoScelto = b.anno;
-      aggiornaDati();
-    }
-  }
 }
 
