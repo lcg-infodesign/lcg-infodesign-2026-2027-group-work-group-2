@@ -41,7 +41,6 @@ let archiDx = {};
 let nastri = []; 
 
 let annoScelto = "2008"; //quando apre sito si parte a vedere dati del 2008
-let bottoni = []; // posizione di ogni bottone, ci serve per capire dove utente clicca
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -136,8 +135,9 @@ function draw() {
   background(BG);
   if (!tabella) return; // il csv si sta ancora caricando
 
-  //da sistemare stile e mettere nella mastro
+  //da ricorrenti.js
   disegnaBottoni(); // prima del translate: usa le coordinate normali
+  disegnaNav();
 
   //posizione del grafico
   const r = min(width, height) * 0.35; //dermino raggio del cerchio //AL MOMENTO ADAPTIVE
