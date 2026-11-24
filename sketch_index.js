@@ -21,6 +21,7 @@ const COLORI = {
   Europe: "#00FE93",
 };
 
+const MIN_ATLETI = 2; //i flussi con meno di 2 atleti vengono ignorati
 const GAP_CENTRO = 0.20; // vuoto in alto e in basso tra i due semicerchi (radianti)
 const GAP_CONTINENTI = 0.03; // spazio tra un continente e l'altro (arco)
 
@@ -55,34 +56,44 @@ function aggiornaDati() { //ogni volta che utente filtra gli anni si aggiornano 
 //FINO A QUI
 
 function contaFlussi() {
-  // matrice 5x5 (numero dei continenti di partenza x numero dei continenti di arrivo) piena di zeri
+  // matrice 5x5 piena di zeri (5 come i continenti di partenza e di arrivo)
   for (const provenienza of CONTINENTI) {
     flussi[provenienza] = {};
     for (const arrivo of CONTINENTI) flussi[provenienza][arrivo] = 0;
     totNascita[provenienza] = 0;
     totRappresentato[provenienza] = 0;
   }
-  totale = 0; // altrimenti a ogni click si somma al totale vecchio
+  totale = 0;
 
-  // viene letto il dataset riga per riga
+  //conto gli atleti che migrano
+  const conteggio = {};
   for (let i = 0; i < tabella.getRowCount(); i++) {
+    if (tabella.getString(i, "year") !== annoScelto) continue;
     const provenienza = tabella.getString(i, "continent_ origin");
     const arrivo = tabella.getString(i, "continent_ destination");
-    // salta le righe di altri anni
-    if (tabella.getString(i, "year") !== annoScelto) continue;
-    // salta le righe senza continente o con "Altro"
     if (!CONTINENTI.includes(provenienza) || !CONTINENTI.includes(arrivo)) continue;
-    // conta solo chi gareggia per un paese diverso da quello in cui è nato
+
+    //verifico di contare flussi migratori tra paesi di almeno due atleti
     let paeseNascita = tabella.getString(i, "birth_country_full");
     const paeseGara = tabella.getString(i, "gapminder_countryname");
-    if (STESSO_PAESE[paeseNascita]) paeseNascita = STESSO_PAESE[paeseNascita]; // traduco i nomi storici
-    if (paeseNascita === paeseGara) continue; // stesso paese = non è migrato, salto
+    if (STESSO_PAESE[paeseNascita]) paeseNascita = STESSO_PAESE[paeseNascita]; 
+    if (paeseNascita === "" || paeseGara === "") continue;
+    if (paeseNascita === paeseGara) continue; // non è migrato
 
-    //aumenta il conteggio del numero di atleti per ogni riga in cui si sofferma
-    flussi[provenienza][arrivo]++;
-    totNascita[provenienza]++;
-    totRappresentato[arrivo]++;
-    totale++;
+    const coppia = provenienza + "|" + arrivo + "|" + paeseNascita + "|" + paeseGara;
+    conteggio[coppia] = (conteggio[coppia] || 0) + 1;
+  }
+
+  //sommo gli atleti che effettuano migrazione di ogni paese all'interno del continente
+  for (const coppia in conteggio) {
+    const [provenienza, arrivo] = coppia.split("|"); // mi servono solo i primi due pezzi
+    const valore = conteggio[coppia];
+    if (valore < MIN_ATLETI) continue; // salto flussi con solo 1 atleta
+
+    flussi[provenienza][arrivo] += valore;
+    totNascita[provenienza] += valore;
+    totRappresentato[arrivo] += valore;
+    totale += valore;
   }
 }
 
@@ -169,7 +180,7 @@ function draw() {
   //etichetta vicino al mouse e "manina" quando sono sopra un nastro
   resetMatrix(); // torno alle coordinate normali (annulla il translate)
   if (nastroSopra) {
-    /disegnaInfo(nastroSopra);/
+    disegnaInfo(nastroSopra);
     cursor(HAND);
   } else {
     cursor(ARROW);
@@ -238,7 +249,7 @@ function puntoBezier(p0, p1, p2, t) {
 //serve sia per disegnare il nastro sia per capire se il mouse ci è dentro.
 function puntiNastro(u1, u2, v1, v2, r) {
   const centro = { x: 0, y: 0 };
-  const passi = 40; // i passi suddividono la curva in un numero di linee rette. più passi = curva più morbida
+  const passi = 60; // i passi suddividono la curva in un numero di linee rette. più passi = curva più morbida
   const punti = [];
 
   // 1. arco a sinistra (scende)
@@ -289,15 +300,15 @@ function dentroForma(x, y, punti) {
 }
 
 //riquadro con flusso indicato e il numero di atleti, vicino al mouse
-/* function disegnaInfo(n) {
+function disegnaInfo(n) {
   const dim = min(width, height) * 0.022;
-  const riga1 = n.da + " → " + n.a;
-  const riga2 = n.valore + " athletes · click to explore"; 
+  const riga1 = "from " + n.da + " to " + n.a;
+  const riga2 = n.valore + " athletes"; 
 
-  textFont(workSans);
+  textFont("Trebuchet MS");
   textSize(dim);
   const w1 = textWidth(riga1);
-  textSize(dim * 0.75);
+  textSize(dim);
   const w2 = textWidth(riga2);
 
   const pad = dim * 0.7;
@@ -310,7 +321,7 @@ function dentroForma(x, y, punti) {
   if (y + h > height) y = mouseY - dim - h;
 
   fill(BG);
-  stroke(COLORI[n.da]);
+  stroke(255);
   strokeWeight(1.5);
   rect(x, y, w, h, dim * 0.4);
 
@@ -319,7 +330,7 @@ function dentroForma(x, y, punti) {
   fill(255);
   textSize(dim);
   text(riga1, x + pad, y + pad);
-  fill(255, 170);
-  textSize(dim * 0.75);
+  fill(255);
+  textSize(dim);
   text(riga2, x + pad, y + pad + dim * 1.4);
-}*/
+}
