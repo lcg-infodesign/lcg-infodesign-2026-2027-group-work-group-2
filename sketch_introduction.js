@@ -1,19 +1,3 @@
-//palette
-const BG = "#190A32";
-
-//paragrafi
-const P1 =
-  "Sport migration is a multifaceted social, economic,\n" + //da risolvere responsiveness del testo
-  "and geographical phenomenon involving the relocation of athletes,\n" +
-  "coaches, and sports professionals from one country or region\n" +
-  "to another driven by sports-related opportunities.";
-
-const P2 =
-  "Professor Gijsbert Oonk of Erasmus University Rotterdam created a dataset\n" +
-  "on sports migration in the Olympic Games.\n" +
-  "Building on his work, our project analyzes this phenomenon across recent\n" +
-  "editions of the Olympic Games held between 2008 and 2024.";
-
 //font
 let montserratAlt; //titolo
 let workSans; //bottoni
@@ -36,7 +20,7 @@ async function setup() {
 }
 
 function draw() {
-  background(BG);
+  background("#190A32");
 
   //scroll
   scrollPos = lerp(scrollPos, scrollTarget, 0.03); //lerp(start, stop, amt): più basso = più lento
@@ -51,8 +35,8 @@ function draw() {
   showArrow = constrain((millis() / 1000 - 0.3) / 0.5, 0, 1) * (1 - map(s, 0, 0.1, 0, 1, true));
 
   drawTitle(shrink);
-  drawParagraph(P1, NORMAL, width * 0.0175, height * 0.5, showP1);
-  drawParagraph(P2, ITALIC, width * 0.0175, height * 0.7, showP2);
+  drawParagraph1(showP1);
+  drawParagraph2(showP2);
   drawArrow(showArrow);
   drawButton(showButton);
 
@@ -63,11 +47,23 @@ function draw() {
   }
 }
 
-//titolo
+//titolo: dimensione e posizione (anche per disporre paragrafi)
+function titleSize(shrink) {
+  let size = max(lerp(width * 0.07, width * 0.05, shrink), 48); //mai sotto 48px
+  textFont(montserratAlt);
+  textSize(size);
+  size *= min(1, (width * 0.9) / textWidth("Sport Migration?")); //se non ci sta in larghezza, si riduce
+  return size;
+}
+
+function titleCy(shrink) {
+  return lerp(height / 2, height * 0.17, shrink); //centro verticale del titolo
+}
+
 function drawTitle(shrink) {
-  const size = lerp(width * 0.07, width * 0.05, shrink); //dimensione del testo
-  const cy = lerp(height / 2, height * 0.17, shrink); //centro verticale del titolo
-  const alpha = lerp(255, 130, shrink); //opacità 
+  const size = titleSize(shrink);
+  const cy = titleCy(shrink);
+  const alpha = lerp(255, 130, shrink); //opacità
 
   textFont(montserratAlt);
   textSize(size);
@@ -82,9 +78,18 @@ function drawTitle(shrink) {
   text("What is Olympic", width / 2, cy - size * 0.2);
 }
 
-//paragrafi
-function drawParagraph(txt, style, size, y, show) {
+//paragrafi centrati in un punto dello spazio tra titolo e bottone
+function drawParagraph(txt, style, pos, show) {
   if (show <= 0) return;
+
+  const top = titleCy(1) + titleSize(1) * 1.15; //fondo del titolo rimpicciolito
+  const bottom = buttonLayout().y; //inizio del bottone
+  const y = lerp(top, bottom, pos); //pos: 0 = sotto il titolo, 1 = sopra il bottone
+
+  const size = max(18, min(width * 0.0175, height * 0.032)); //mai meno di 18px 
+  const w = max(width * 0.6, min(width * 0.9, 400)); //larghezza del blocco
+  const h = size * 8; //altezza del riquadro
+
   noStroke();
   fill(255, 255 * show);
   textFont("Trebuchet MS");
@@ -92,8 +97,17 @@ function drawParagraph(txt, style, size, y, show) {
   textSize(size);
   textLeading(size * 1.2); //interlinea
   textAlign(CENTER, CENTER);
-  text(txt, width / 2, y + (1 - show) * 30); //la x è sempre centrata, la y aumenta e il testo sale
+  textWrap(WORD); //va a capo tra una parola e l'altra
+  text(txt, width / 2 - w / 2, y - h / 2 + (1 - show) * 30, w, h);
   textStyle(NORMAL);
+}
+
+function drawParagraph1(show) {
+  drawParagraph("Sport migration is a multifaceted social, economic, and geographical phenomenon involving the relocation of athletes, coaches, and sports professionals from one country or region to another driven by sports-related opportunities.", NORMAL, 0.33, show);
+}
+
+function drawParagraph2(show) {
+  drawParagraph("Professor Gijsbert Oonk of Erasmus University Rotterdam created a dataset on sports migration in the Olympic Games. Building on his work, our project analyzes this phenomenon across recent editions of the Olympic Games held between 2008 and 2024.", ITALIC, 0.67, show);
 }
 
 //misure del bottone
