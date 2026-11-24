@@ -3,10 +3,15 @@ async function setup() {
   workSans = await loadFont("assets/WorkSans-Bold.ttf");
 }
 
+const parametri = getURLParams();
+paeseDa = decodeURIComponent(parametri.da);
+paeseA = decodeURIComponent(parametri.a);
+
 function draw() {
   background("#190A32");
   
   //da ricorrenti.js
   disegnaNav();
   disegnaBreadCrumb();
+  disegnaBottoni();
 }

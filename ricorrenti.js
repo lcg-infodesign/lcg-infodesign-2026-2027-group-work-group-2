@@ -7,6 +7,7 @@ const ANNI = [
 ];
 
 let annoScelto = "2008"; //quando apre sito si parte a vedere dati del 2008
+let anniDisattivi = [];
 
 
 function disegnaBottoni() {
@@ -29,19 +30,22 @@ function disegnaBottoni() {
 
   for (const a of ANNI) { //l'anno non l'etichetta
     const scelto = a.anno === annoScelto;   // confronto con l'anno
+    const disattivo = anniDisattivi.includes(a.anno);
     const sopra = mouseX > x && mouseX < x + w && mouseY > y && mouseY < y + h;
 
     noStroke();
-    if (scelto) fill(255);
+    if (disattivo) fill("#24203C"); //grigio
+    else if (scelto) fill(255);
     else if (sopra) fill("#5c45d2");
     else fill("#281977");
     rect(x, y, w, h, h / 2);
 
-    if (scelto) fill("#281977");
-    else fill("#ffffff");
+    if (disattivo) fill("#7E7E7E");
+    else if (scelto) fill("#281977");
+    else fill(255);
     text(a.etichetta, x + w / 2, y + h / 2);   // mostro il nome della città
 
-    bottoni.push({ anno: a.anno, x, y, w, h }); // salvo solo l'anno
+     bottoni.push({ anno: a.anno, x, y, w, h, disattivo }); // salvo solo l'anno
     x += w + spazio;
   }
 }
@@ -52,10 +56,11 @@ const PAGINE = [
   { etichetta: "About Us", link: "aboutUs.html" },
   { etichetta: "About Dataset", link: "aboutDataset.html" },
 ];
-const COLONNE = 5;      // stessa griglia dei bottoni degli anni
-let bottoniNav = [];    // posizione dei bottoni in alto
-let bottoni = [];       // (spostalo qui dallo sketch, vedi sotto)
+const COLONNE = 5;// stessa griglia dei bottoni degli anni
+let bottoniNav = [];// posizione dei bottoni in alto
+let bottoni = [];// (spostalo qui dallo sketch, vedi sotto)
 let nastroSopra = null; // il nastro del chord sotto il mouse
+let nastroPaeseSopra = null; // il nastro del sankey (pagina continent) sotto il mouse
 
 // misure comuni a tutti i bottoni, ricalcolate a ogni frame
 function griglia() {
@@ -105,6 +110,7 @@ function disegnaNav() {
 function mousePressed() {
   // bottoni degli anni
   for (const b of bottoni) {
+    if (b.disattivo) continue; // bottone grigio: il click non fa niente
     if (mouseX > b.x && mouseX < b.x + b.w && mouseY > b.y && mouseY < b.y + b.h) {
       annoScelto = b.anno;
        sessionStorage.setItem("anno", annoScelto); // l'anno scelto vale per tutte le pagine
@@ -112,7 +118,7 @@ function mousePressed() {
     }
   }
 
-  // click su un nastro del chord → apro la pagina di quel flusso
+  // click su un nastro del chord apro la pagina di quel flusso
   // encodeURIComponent scrive i nomi in modo sicuro dentro l'indirizzo
   if (nastroSopra) {
     sessionStorage.setItem("anno", annoScelto); // per ritrovare lo stesso anno tornando indietro
@@ -120,6 +126,17 @@ function mousePressed() {
       "continent.html?da=" + encodeURIComponent(nastroSopra.da) + "&a=" + encodeURIComponent(nastroSopra.a) + "&anno=" + annoScelto;
     return;
   }
+   
+  // click su un nastro del sankey apro la pagina comparison di quei due paesi
+  if (nastroPaeseSopra) {
+    sessionStorage.setItem("anno", annoScelto);
+    window.location.href =
+      "comparison.html?da=" + encodeURIComponent(nastroPaeseSopra.da) +
+      "&a=" + encodeURIComponent(nastroPaeseSopra.a) +
+      "&anno=" + annoScelto;
+    return;
+  }
+  
 
   // bottoni di navigazione
   for (const b of bottoniNav) {

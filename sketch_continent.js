@@ -39,7 +39,7 @@ let totale = 0;
 let colonnaSx = {}; // { u1, u2 } per ogni paese a sinistra
 let colonnaDx = {};
 let nastri = [];
-let nastroPaeseSopra = null; //nome diverso da nastroSopra, così il click di ricorrenti.js non cambia pagina
+
 
 async function setup() {
   parametri = getURLParams();
@@ -53,8 +53,46 @@ async function setup() {
 
   const annoSalvato = sessionStorage.getItem("anno") || parametri.anno;
   if (ANNI.some((a) => a.anno === annoSalvato)) annoScelto = annoSalvato;
+  
+  calcolaAnniDisattivi();
+  // se l'anno scelto è grigio, passo al primo anno che ha dati
+  if (anniDisattivi.includes(annoScelto)) {
+    const primo = ANNI.find((a) => !anniDisattivi.includes(a.anno));
+    if (primo) annoScelto = primo.anno;
+  }
 
   aggiornaDati();
+}
+// per ogni edizione controllo se esiste almeno una coppia di paesi con minimo 2 atleti
+function calcolaAnniDisattivi() {
+  anniDisattivi = [];
+  if (!continenteDa || !continenteA) return;
+
+  for (const a of ANNI) {
+    const conteggio = {};
+    let trovato = false;
+
+    for (let i = 0; i < tabella.getRowCount(); i++) {
+      if (tabella.getString(i, "year") !== a.anno) continue;
+      if (tabella.getString(i, "continent_ origin") !== continenteDa) continue;
+      if (tabella.getString(i, "continent_ destination") !== continenteA) continue;
+
+      let paeseNascita = tabella.getString(i, "birth_country_full");
+      const paeseGara = tabella.getString(i, "gapminder_countryname");
+      if (STESSO_PAESE[paeseNascita]) paeseNascita = STESSO_PAESE[paeseNascita];
+      if (paeseNascita === "" || paeseGara === "") continue;
+      if (paeseNascita === paeseGara) continue;
+
+      const coppia = paeseNascita + "|" + paeseGara;
+      conteggio[coppia] = (conteggio[coppia] || 0) + 1;
+      if (conteggio[coppia] >= MIN_ATLETI) {
+        trovato = true; // basta una coppia: l'edizione ha dati
+        break;
+      }
+    }
+
+    if (!trovato) anniDisattivi.push(a.anno);
+  }
 }
 
 // da ricorrenti.js quando clicco un anno
