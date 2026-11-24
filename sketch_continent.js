@@ -1,6 +1,8 @@
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   workSans = await loadFont("assets/WorkSans-Bold.ttf");
+  const annoSalvato = sessionStorage.getItem("anno");
+  if(ANNI.some((a) => a.anno === annoSalvato)) annoScelto = annoSalvato;
 }
 
 function draw() {
@@ -9,4 +11,5 @@ function draw() {
   //da ricorrenti.js
   disegnaNav();
   disegnaBreadCrumb();
+  disegnaBottoni();
 }

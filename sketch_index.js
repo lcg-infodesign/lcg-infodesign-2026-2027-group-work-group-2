@@ -23,13 +23,6 @@ const COLORI = {
 
 const GAP_CENTRO = 0.20; // vuoto in alto e in basso tra i due semicerchi (radianti)
 const GAP_CONTINENTI = 0.03; // spazio tra un continente e l'altro (arco)
-const ANNI = [
-  { anno: "2008", etichetta: "Beijing 2008" },
-  { anno: "2012", etichetta: "London 2012" },
-  { anno: "2016", etichetta: "Rio de Janeiro 2016" },
-  { anno: "2020", etichetta: "Tokyo 2020" },
-  { anno: "2024", etichetta: "Paris 2024" },
-];
 
 let tabella;
 let flussi = {};         
@@ -40,12 +33,15 @@ let archiSx = {};
 let archiDx = {};
 let nastri = []; 
 
-let annoScelto = "2008"; //quando apre sito si parte a vedere dati del 2008
-
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   tabella = await loadTable("assets/olympic.csv", ",", true);
   workSans = await loadFont("assets/WorkSans-Bold.ttf");
+
+  // se torno qui dalla pagina di un nastro, ritorno all'anno che stavo visualizzando (salvato in ricorrenti.js)
+  const annoSalvato = sessionStorage.getItem("anno");
+  if (ANNI.some((a) => a.anno === annoSalvato)) annoScelto = annoSalvato;
+
   aggiornaDati();
 }
 
@@ -142,10 +138,25 @@ function draw() {
 
   //posizione del grafico
   const r = min(width, height) * 0.35; //dermino raggio del cerchio //AL MOMENTO ADAPTIVE
-  translate(width / 2, height * 0.5); 
+
+  //hover nastri, controllo che il mouse sia sopra il grafico
+  const mx = mouseX - width / 2;
+  const my = mouseY - height / 2;
+  nastroSopra = null; // (la variabile è in ricorrenti.js, perché il click è lì)
+  for (const n of nastri) {
+    n.punti = puntiNastro(n.u1, n.u2, n.v1, n.v2, r * 0.95);
+    // i nastri si sovrappongono: tengo l'ultimo trovato, cioè quello disegnato più in alto
+    if (dentroForma(mx, my, n.punti)) nastroSopra = n;
+  }
+
+  translate(width / 2, height / 2); 
 
   for (const n of nastri) {
-    disegnaNastro(n.u1, n.u2, n.v1, n.v2, r * 0.95, COLORI[n.da]);
+    //opacità diversa a seconda dell'hover
+    let opacita = 150; // normale (circa 60%)
+    if (nastroSopra === n) opacita = 255; // il nastro sotto il mouse: pieno
+    else if (nastroSopra) opacita = 100; // gli altri, mentre ne guardo uno, diventano ancora più opachi per contrasto
+    disegnaNastro(n.punti, COLORI[n.da], opacita);
   }
 
   for (const c of CONTINENTI) {
@@ -153,6 +164,15 @@ function draw() {
     disegnaArco("destra", archiDx[c].u1, archiDx[c].u2, r, COLORI[c]); //u1 indica punto di inizio e u2 punto di fine
     disegnaEtichetta("sinistra", (archiSx[c].u1 + archiSx[c].u2) / 2, r, c);
     disegnaEtichetta("destra", (archiDx[c].u1 + archiDx[c].u2) / 2, r, c);
+  }
+
+  //etichetta vicino al mouse e "manina" quando sono sopra un nastro
+  resetMatrix(); // torno alle coordinate normali (annulla il translate)
+  if (nastroSopra) {
+    /disegnaInfo(nastroSopra);/
+    cursor(HAND);
+  } else {
+    cursor(ARROW);
   }
 }
 
@@ -215,40 +235,91 @@ function puntoBezier(p0, p1, p2, t) {
   };
 }
 
-function disegnaNastro(u1, u2, v1, v2, r, colore) {
+//serve sia per disegnare il nastro sia per capire se il mouse ci è dentro.
+function puntiNastro(u1, u2, v1, v2, r) {
   const centro = { x: 0, y: 0 };
   const passi = 40; // i passi suddividono la curva in un numero di linee rette. più passi = curva più morbida
+  const punti = [];
 
-  const c = color(colore);
-  c.setAlpha(150); // opacità del 60%
-  fill(c);
-  noStroke();
-
-  beginShape(); //traccia il contorno dei nastri e i 4 vertici
   // 1. arco a sinistra (scende)
   for (let i = 0; i <= passi; i++) {
-    const p = puntoSulCerchio("sinistra", lerp(u1, u2, i / passi), r); //lerp(start, stop, amt). Calculates a number between two numbers at a specific increment.
-    vertex(p.x, p.y);
+    punti.push(puntoSulCerchio("sinistra", lerp(u1, u2, i / passi), r));
   }
   // 2. curva verso destra
-  const provenienza = puntoSulCerchio("sinistra", u2, r);
-  const arrivo = puntoSulCerchio("destra", v2, r);
+  const inizioCurva = puntoSulCerchio("sinistra", u2, r);
+  const fineCurva = puntoSulCerchio("destra", v2, r);
   for (let i = 1; i <= passi; i++) {
-    const p = puntoBezier(provenienza, centro, arrivo, i / passi);
-    vertex(p.x, p.y);
+    punti.push(puntoBezier(inizioCurva, centro, fineCurva, i / passi));
   }
   // 3. arco a destra (al contrario: sale)
   for (let i = 1; i <= passi; i++) {
-    const p = puntoSulCerchio("destra", lerp(v2, v1, i / passi), r);
-    vertex(p.x, p.y);
+    punti.push(puntoSulCerchio("destra", lerp(v2, v1, i / passi), r));
   }
   // 4. curva di ritorno verso sinistra
-  const provenzienza2 = puntoSulCerchio("destra", v1, r);
-  const arrivo2 = puntoSulCerchio("sinistra", u1, r);
+  const inizioCurva2 = puntoSulCerchio("destra", v1, r);
+  const fineCurva2 = puntoSulCerchio("sinistra", u1, r);
   for (let i = 1; i < passi; i++) {
-    const p = puntoBezier(provenzienza2, centro, arrivo2, i / passi);
-    vertex(p.x, p.y);
+    punti.push(puntoBezier(inizioCurva2, centro, fineCurva2, i / passi));
   }
+  return punti;
+}
+
+// disegnaNastro unisce i punti già calcolati
+function disegnaNastro(punti, colore, opacita) {
+  const c = color(colore);
+  c.setAlpha(opacita);
+  fill(c);
+  noStroke();
+  beginShape(); //traccia il contorno del nastro
+  for (const p of punti) vertex(p.x, p.y);
   endShape(CLOSE);
 }
 
+//verifica posizione
+//da (x, y) tiro una linea orizzontale verso destra e conto quante volte attraversa il contorno. Dispari = sono dentro, pari = sono fuori.
+function dentroForma(x, y, punti) {
+  let dentro = false; //parto considerando che sono fuori
+  for (let i = 0, j = punti.length - 1; i < punti.length; j = i++) {
+    const a = punti[i];
+    const b = punti[j]; // j è il punto prima di i: insieme formano un lato del contorno
+    const attraversa = (a.y > y) !== (b.y > y) && x < ((b.x - a.x) * (y - a.y)) / (b.y - a.y) + a.x; //se la y di a è > della y del mouse allora y di b deve essere minore
+    if (attraversa) dentro = !dentro; //ogni attraversamento ribalta lo stato 
+  }
+  return dentro;
+}
+
+//riquadro con flusso indicato e il numero di atleti, vicino al mouse
+/* function disegnaInfo(n) {
+  const dim = min(width, height) * 0.022;
+  const riga1 = n.da + " → " + n.a;
+  const riga2 = n.valore + " athletes · click to explore"; 
+
+  textFont(workSans);
+  textSize(dim);
+  const w1 = textWidth(riga1);
+  textSize(dim * 0.75);
+  const w2 = textWidth(riga2);
+
+  const pad = dim * 0.7;
+  const w = max(w1, w2) + pad * 2;
+  const h = dim * 2.3 + pad * 2;
+  // il riquadro sta in basso a destra del mouse, ma se esce dallo schermo lo sposto
+  let x = mouseX + dim;
+  let y = mouseY + dim;
+  if (x + w > width) x = mouseX - dim - w;
+  if (y + h > height) y = mouseY - dim - h;
+
+  fill(BG);
+  stroke(COLORI[n.da]);
+  strokeWeight(1.5);
+  rect(x, y, w, h, dim * 0.4);
+
+  noStroke();
+  textAlign(LEFT, TOP);
+  fill(255);
+  textSize(dim);
+  text(riga1, x + pad, y + pad);
+  fill(255, 170);
+  textSize(dim * 0.75);
+  text(riga2, x + pad, y + pad + dim * 1.4);
+}*/

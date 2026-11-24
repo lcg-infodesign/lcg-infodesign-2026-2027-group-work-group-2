@@ -1,3 +1,14 @@
+const ANNI = [
+  { anno: "2008", etichetta: "Beijing 2008" },
+  { anno: "2012", etichetta: "London 2012" },
+  { anno: "2016", etichetta: "Rio de Janeiro 2016" },
+  { anno: "2020", etichetta: "Tokyo 2020" },
+  { anno: "2024", etichetta: "Paris 2024" },
+];
+
+let annoScelto = "2008"; //quando apre sito si parte a vedere dati del 2008
+
+
 function disegnaBottoni() {
   // margine esterno: 48px a schermo intero, si riduce quando la finestra si stringe
   const margine = min(48, width * 0.025);
@@ -44,6 +55,7 @@ const PAGINE = [
 const COLONNE = 5;      // stessa griglia dei bottoni degli anni
 let bottoniNav = [];    // posizione dei bottoni in alto
 let bottoni = [];       // (spostalo qui dallo sketch, vedi sotto)
+let nastroSopra = null; // il nastro del chord sotto il mouse
 
 // misure comuni a tutti i bottoni, ricalcolate a ogni frame
 function griglia() {
@@ -95,8 +107,18 @@ function mousePressed() {
   for (const b of bottoni) {
     if (mouseX > b.x && mouseX < b.x + b.w && mouseY > b.y && mouseY < b.y + b.h) {
       annoScelto = b.anno;
-      aggiornaDati();
+       sessionStorage.setItem("anno", annoScelto); // l'anno scelto vale per tutte le pagine
+      if (typeof aggiornaDati === "function") aggiornaDati(); // solo se la pagina ha aggiornaDati
     }
+  }
+
+  // click su un nastro del chord → apro la pagina di quel flusso
+  // encodeURIComponent scrive i nomi in modo sicuro dentro l'indirizzo
+  if (nastroSopra) {
+    sessionStorage.setItem("anno", annoScelto); // per ritrovare lo stesso anno tornando indietro
+    window.location.href =
+      "continent.html?da=" + encodeURIComponent(nastroSopra.da) + "&a=" + encodeURIComponent(nastroSopra.a) + "&anno=" + annoScelto;
+    return;
   }
 
   // bottoni di navigazione
@@ -118,7 +140,7 @@ function mousePressed() {
 const PAGINE_SITO = {
   "introduction.html": "Introduction",
   "index.html": "Global",
-  "continents.html": "Continents",
+  "continent.html": "Continents",
   "comparison.html": "Comparison",
   "aboutUs.html": "About Us",
   "aboutDataset.html": "About Dataset",
