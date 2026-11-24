@@ -131,38 +131,34 @@ function arrowY() {
   return b.y + b.h / 2 - height * 0.13;
 }
 
-//colori dei bottoni
-function buttonColors(over, show) {
-  let bg;
-  let fg;
-  if (over && mouseIsPressed) {
-    bg = color("#ffffff"); //premuto
-    fg = color("#281977");
-  } else if (over) {
-    bg = color("#5c45d2"); //mouse sopra
-    fg = color("#ffffff");
-  } else {
-    bg = color("#281977"); //normale
-    fg = color("#ffffff");
-  }
-  bg.setAlpha(255 * show);
-  fg.setAlpha(255 * show);
-  return { bg, fg };
-}
-
 function drawArrow(show) {
   if (show <= 0) return;
   const d = arrowSize();
-  const c = buttonColors(overArrow(show), show);
+  const over = overArrow(show);
+  const alpha = hex(round(255 * show), 2);
 
   push();
   translate(width / 2, arrowY());
   noStroke();
-  fill(c.bg);
+
+  //sfondo cerchio
+  if (over && mouseIsPressed)  {
+    fill("#ffffff" + alpha); 
+  } else if (over) {
+    fill ("#5c45d2" + alpha); 
+  } else {
+    fill("#281977" + alpha); 
+  }
   circle(0, 0, d);
 
   //disegno freccia
-  stroke(c.fg);
+  if (over && mouseIsPressed)  {
+    stroke ("#281977" + alpha); 
+  } else if (over) {
+    stroke ("#ffffff" + alpha); 
+  } else {
+    stroke ("#ffffff" + alpha); 
+  }
   strokeWeight(d * 0.05); //d è diametro cerchio
   line(0, -d * 0.17, 0, d * 0.17);
   line(-d * 0.12, d * 0.05, 0, d * 0.17);
@@ -175,18 +171,32 @@ function drawButton(show) {
   if (show <= 0) return;
   const b = buttonLayout();
   if (show > 0.5) bottoniNav.push({ link: "index.html", x: b.x, y: b.y, w: b.w, h: b.h });
-  const c = buttonColors(overButton(show), show);
+  const over = overButton(show);
+  const alpha = hex(round(255 * show), 2);
 
   noStroke();
-  fill(c.bg);
+  if (over && mouseIsPressed)  {
+    fill("#ffffff" + alpha); 
+  } else if (over) {
+    fill ("#5c45d2" + alpha); 
+  } else {
+    fill("#281977" + alpha); 
+  }
   rect(b.x, b.y, b.w, b.h, b.h / 2);
 
-  fill(c.fg);
+  if (over && mouseIsPressed)  {
+    fill ("#281977" + alpha); 
+  } else if (over) {
+    fill ("#ffffff" + alpha); 
+  } else {
+    fill ("#ffffff" + alpha); 
+  }
   textFont(workSans);
   textSize(b.h * 0.45);
   textAlign(CENTER, CENTER);
   text("Start exploring", b.x + b.w / 2, b.y + b.h / 2);
 }
+
 
 function overArrow(show) {
   return show > 0.5 && dist(mouseX, mouseY, width / 2, arrowY()) < arrowSize() / 2;
