@@ -32,7 +32,7 @@ function draw() {
   if (!workSans) return; // aspetta che il font sia caricato
 
   // 1. Funzioni chiamate da ricorrenti.js
-  disegnaBreadCrumb();
+  disegnaLinkGlobal();
   disegnaNav();
 
   // 2. I 6 box distribuiti sotto l'header

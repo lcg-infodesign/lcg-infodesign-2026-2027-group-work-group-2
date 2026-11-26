@@ -231,3 +231,27 @@ function disegnaBreadCrumb() {
     x += wVoce + gap; // spazio prima della voce successiva
   }
 }
+
+function disegnaLinkGlobal() {
+  const { margine, h } = griglia();
+  let x = margine;
+  const y = margine * 0.5 + h / 2; // come About
+  const dimensione = h * 0.45;
+  const nome = "Global";
+
+  bottoniBreadcrumb = [];
+  textFont(workSans);
+  textSize(dimensione);
+  textAlign(LEFT, CENTER);
+  noStroke();
+
+  const wVoce = textWidth(nome);
+  const sopra = mouseX > x && mouseX < x + wVoce && mouseY > y - h / 2 && mouseY < y + h / 2;
+
+  if (sopra) fill("#5c45d2"); // hover
+  else fill(255); // cliccabile: bianca
+
+  text(nome, x, y);
+
+  bottoniNav.push({ link: "index.html", x, y: y - h / 2, w: wVoce, h });
+}
