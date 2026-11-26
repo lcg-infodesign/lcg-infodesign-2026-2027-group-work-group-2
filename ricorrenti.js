@@ -151,6 +151,8 @@ function mousePressed() {
       window.location.href = b.link;
     }
   }
+
+  
 }
 
 // nome del file ed etichette nome mostrato nel breadcrumb

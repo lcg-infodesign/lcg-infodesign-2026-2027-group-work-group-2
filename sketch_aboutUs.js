@@ -32,8 +32,8 @@ function draw() {
   if (!workSans) return; // aspetta che il font sia caricato
 
   // 1. Funzioni chiamate da ricorrenti.js
-  disegnaLinkGlobal();
   disegnaNav();
+  disegnaLinkGlobal(); // chiamato dopo disegnaNav() così il link resta in bottoniNav
 
   // 2. I 6 box distribuiti sotto l'header
   const { margine, h } = griglia();
@@ -206,4 +206,3 @@ function drawNuotatrice() {
   stroke(cRosa);
   arc(36, 32, 42, 42, 0, PI);
 }
-
