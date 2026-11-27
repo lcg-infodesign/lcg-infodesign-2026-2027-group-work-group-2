@@ -15,7 +15,7 @@ let bottoniNav = []; //posizione dei bottoni cliccabili
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
-  montserratAlt = await loadFont("assets/MontserratAlternates-Bold.ttf");
+  fontTitolo = await loadFont("assets/MontserratAlternates-Bold.ttf");
   workSans = await loadFont("assets/WorkSans-Bold.ttf");
 }
 
@@ -50,7 +50,7 @@ function draw() {
 //titolo: dimensione e posizione (anche per disporre paragrafi)
 function titleSize(shrink) {
   let size = max(lerp(width * 0.07, width * 0.05, shrink), 48); //mai sotto 48px
-  textFont(montserratAlt);
+  textFont(fontTitolo);
   textSize(size);
   size *= min(1, (width * 0.9) / textWidth("Sport Migration?")); //se non ci sta in larghezza, si riduce
   return size;
@@ -65,7 +65,7 @@ function drawTitle(shrink) {
   const cy = titleCy(shrink);
   const alpha = lerp(255, 130, shrink); //opacità
 
-  textFont(montserratAlt);
+  textFont(fontTitolo);
   textSize(size);
   noStroke();
   fill(255, alpha);

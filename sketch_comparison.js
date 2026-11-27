@@ -1,6 +1,7 @@
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   workSans = await loadFont("assets/WorkSans-Bold.ttf");
+  fontTitolo = await loadFont("assets/MontserratAlternates-Bold.ttf");
   calcolaRigheUniche(tabella);
 }
 
@@ -15,4 +16,5 @@ function draw() {
   disegnaNav();
   disegnaBreadCrumb();
   disegnaBottoni();
+  disegnaTitolo();
 }

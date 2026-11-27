@@ -274,3 +274,67 @@ function calcolaRigheUniche(t) {
   }
 
 }
+
+//titoli
+//array con i continenti
+const CONTINENTI_TITOLO = ["Americas", "Oceania", "Africa", "Asia", "Europe"];
+
+let fontTitolo;
+
+const TITOLO_FISSO = "Migration flow"; // prima parte, uguale in tutte le pagine
+const SEPARATORE = " → "; // tra partenza e arrivo (per tornare al trattino: " - ")
+
+// legge dall'indirizzo il flusso cliccato: continent.html?da=Europe&a=Americas
+// restituisce null se manca o se i nomi non sono continenti veri
+function flussoDaIndirizzo() {
+  const parametri = new URLSearchParams(window.location.search);
+  const da = parametri.get("da");
+  const a = parametri.get("a");
+  if (!CONTINENTI_TITOLO.includes(da) || !CONTINENTI_TITOLO.includes(a)) return null;
+  return { da, a };
+}
+
+// seconda parte del titolo: cambia in base alla pagina e al flusso cliccato
+function sottotitolo() {
+  const file = fileCorrente();
+
+  if (file === "continent.html") {
+    const flusso = flussoDaIndirizzo();
+    if (!flusso) return ""; // indirizzo senza flusso valido: resta solo "Migration flow"
+    return flusso.da + SEPARATORE + flusso.a; // es. Europe → Americas, anche Europe → Europe
+  }
+
+  if (file === "index.html") return "global overview";
+
+  return ""; 
+}
+
+// titolo completo, "Migration flow Europe to Americas"
+function testoTitolo() {
+  const resto = sottotitolo();
+  return resto === "" ? TITOLO_FISSO : TITOLO_FISSO + " " + resto;
+}
+
+// disegna il titolo sotto il breadcrumb, allineato al margine sinistro
+function disegnaTitolo() {
+  if (!fontTitolo) return; // il font si sta ancora caricando
+
+  const { margine, w, h } = griglia();
+  const x = margine;
+  const y = margine * 0.5 + h * 1.2; // subito sotto il breadcrumb
+
+  textFont(fontTitolo);
+  let dimensione = h * 0.95;
+  textSize(dimensione);
+
+  // se il titolo è troppo lungo per lo spazio a sinistra della colonna di destra, si rimpicciolisce
+  //const spazioMax = width - 2 * margine - w - margine;
+  //const larghezza = textWidth(testoTitolo());
+  //if (larghezza > spazioMax) dimensione *= spazioMax / larghezza;
+
+  noStroke();
+  fill(255);
+  textSize(dimensione);
+  textAlign(LEFT, TOP);
+  text(testoTitolo(), x, y);
+}

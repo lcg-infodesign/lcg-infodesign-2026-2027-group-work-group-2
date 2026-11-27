@@ -5,6 +5,7 @@ let TEAM = [];
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   workSans = await loadFont("assets/WorkSans-Bold.ttf");
+  fontTitolo = await loadFont("assets/MontserratAlternates-Bold.ttf");
 
   strokeCap(ROUND);
   strokeJoin(ROUND);
@@ -31,11 +32,12 @@ function draw() {
   background("#190A32");
   if (!workSans) return; // aspetta che il font sia caricato
 
-  // 1. Funzioni chiamate da ricorrenti.js
+  //Funzioni chiamate da ricorrenti.js
   disegnaNav();
   disegnaLinkGlobal(); // chiamato dopo disegnaNav() così il link resta in bottoniNav
+  disegnaTitolo();
 
-  // 2. I 6 box distribuiti sotto l'header
+  //I 6 box distribuiti sotto l'header
   const { margine, h } = griglia();
   const yHeader = margine * 0.5 + h;
   disegnaBoxTeam(margine, yHeader + margine * 0.8);

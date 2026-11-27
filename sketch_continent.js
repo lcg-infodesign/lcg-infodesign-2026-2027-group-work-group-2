@@ -50,7 +50,7 @@ async function setup() {
   tabella = await loadTable("assets/olympic.csv", ",", true);
   calcolaRigheUniche(tabella);
   workSans = await loadFont("assets/WorkSans-Bold.ttf");
-  montserrat = await loadFont("assets/MontserratAlternates-Bold.ttf");
+  fontTitolo = await loadFont("assets/MontserratAlternates-Bold.ttf");
 
   const annoSalvato = sessionStorage.getItem("anno") || parametri.anno;
   if (ANNI.some((a) => a.anno === annoSalvato)) annoScelto = annoSalvato;
@@ -214,8 +214,7 @@ function draw() {
   disegnaBottoni();
   disegnaNav();
   disegnaBreadCrumb();// mostro solo nav, breadcrumb e bottoni
-  
-  /*disegnaTitolo();*/
+  disegnaTitolo();
 
   const m = misure();
 
@@ -295,17 +294,6 @@ function disegnaBarraScorrimento(m, altezza, scorriMax) {
   fill(255, 180);//barra che indica cosa vediamo
   rect(x, y, 6, hCursore, 4);
 }
-
-/*
-function disegnaTitolo() {
-  const { margine, h } = griglia();
-  noStroke();
-  fill(255);
-  textFont(montserrat);
-  textSize(h * 1.05);
-  textAlign(LEFT, TOP);
-  text("Migration flow " + continenteDa + "-" + continenteA, margine, margine * 0.5 + h * 1.3);
-}*/
 
 function yColonna(u, m) {
   return m.yTop + u - scorri; //m.yTop da dove partono colonne in altezza; u indica altezza di un paese; scorri è lo scorrimento
