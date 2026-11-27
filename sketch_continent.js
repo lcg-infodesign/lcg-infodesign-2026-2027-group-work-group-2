@@ -194,8 +194,8 @@ function calcolaNastri(m) {
 function misure() {
   const r = min(width, height) * 0.35; //serve per la dimensione del testo
   const m = {
-    xSx: width * 0.3, // margine di sinistra
-    xDx: width * 0.7, // margine di destra
+    xSx: width * 0.2, // margine di sinistra
+    xDx: width * 0.8, // margine di destra
     yTop: height * 0.3,//nizio e fine della "finestra" in cui scorre il grafico
     yBottom: height * 0.84,
     spessore: r * 0.05,//stesso spessore della barra del grafico della visione globale
@@ -219,14 +219,15 @@ function draw() {
 
   const m = misure();
 
-  // nomi dei continenti sopra le colonne
+  // nomi dei continenti sopra le colonne, allineati come i nomi dei paesi
   noStroke();
   fill(255);
   textFont(workSans);
   textSize(griglia().h * 0.45);
-  textAlign(CENTER, BOTTOM);
-  text(continenteDa, m.xSx, m.yTop - m.dimTesto * 2.5);
-  text(continenteA, m.xDx, m.yTop - m.dimTesto * 2.5);
+  textAlign(RIGHT, CENTER); // sinistra: il testo finisce vicino alla barra
+  text(continenteDa, m.xSx - m.spessore - m.dimTesto * 2, m.yTop - m.dimTesto * 2.5);
+  textAlign(LEFT, CENTER); // destra: il testo parte vicino alla barra
+  text(continenteA, m.xDx + m.spessore + m.dimTesto * 2, m.yTop - m.dimTesto * 2.5);
 
   calcolaColonne(m);
   calcolaNastri(m);

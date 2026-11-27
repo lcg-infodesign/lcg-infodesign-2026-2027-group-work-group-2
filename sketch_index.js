@@ -24,6 +24,7 @@ const COLORI = {
 const MIN_ATLETI = 2; //i flussi con meno di 2 atleti vengono ignorati
 const GAP_CENTRO = 0.20; // vuoto in alto e in basso tra i due semicerchi (radianti)
 const GAP_CONTINENTI = 0.03; // spazio tra un continente e l'altro (arco)
+const SOGLIA = 1.2; // se la finestra è più stretta di 1.2 volte la sua altezza, il cerchio si centra in alto
 
 let tabella;
 let flussi = {};         
@@ -139,6 +140,7 @@ function calcolaNastri() {
   }
 }
 
+
 function draw() {
   background(BG);
   if (!tabella) return; // il csv si sta ancora caricando
@@ -148,12 +150,25 @@ function draw() {
   disegnaNav();
   disegnaBreadCrumb();
 
-  //posizione del grafico
-  const r = min(width, height) * 0.35; //dermino raggio del cerchio //AL MOMENTO ADAPTIVE
+   //posizione e grandezza del cerchio a seconda della forma della finestra
+  const { margine, h } = griglia(); // misure dei bottoni, da ricorrenti.js
+  let r, cx, cy;
 
-  //hover nastri, controllo che il mouse sia sopra il grafico
-  const mx = mouseX - width / 2;
-  const my = mouseY - height / 2;
+  if (width / height < SOGLIA) {
+    // finestra stretta: cerchio centrato e in alto, sotto i bottoni About
+    r = width * 0.28; // calcolato sulla larghezza, così Departure e Arrival non escono dai bordi
+    cx = width / 2;
+    cy = margine * 0.5 + h * 2 + r * 1.3; // sotto la nav + spazio per le etichette in alto
+  } else {
+    // finestra larga: come adesso
+    r = min(width, height) * 0.32;
+    cx = width / 3;
+    cy = height / 1.9;
+  }
+
+  //hover nastri: mouse misurato dallo stesso centro del translate
+  const mx = mouseX - cx;
+  const my = mouseY - cy;
   nastroSopra = null; // (la variabile è in ricorrenti.js, perché il click è lì)
   for (const n of nastri) {
     n.punti = puntiNastro(n.u1, n.u2, n.v1, n.v2, r * 0.95);
@@ -161,19 +176,38 @@ function draw() {
     if (dentroForma(mx, my, n.punti)) nastroSopra = n;
   }
 
-  translate(width / 2, height / 2); 
+  translate(cx, cy);
 
   for (const n of nastri) {
     //opacità diversa a seconda dell'hover
-    let opacita = 150; // normale (circa 60%)
-    if (nastroSopra === n) opacita = 255; // il nastro sotto il mouse: pieno
-    else if (nastroSopra) opacita = 100; // gli altri, mentre ne guardo uno, diventano ancora più opachi per contrasto
+    let opacita = 150;
+    if (nastroSopra === n) opacita = 255;
+    else if (nastroSopra) opacita = 100;
     disegnaNastro(n.punti, COLORI[n.da], opacita);
   }
 
+  //Departure e Arrival
+  noStroke();
+  fill(255);
+  textFont(workSans); //stesso font dei continenti del sankey successivo
+  textSize(h * 0.45);
+  textAlign(CENTER, CENTER);
+
+  push();
+  translate(-r * 1.5, 0); // a sinistra del cerchio, a metà altezza
+  rotate(-HALF_PI); // ruoto di 90° in senso antiorario: si legge dal basso verso l'alto
+  text("Departure", 0, 0);
+  pop();
+
+  push();
+  translate(r * 1.5, 0); //a destra del cerchio
+  rotate(HALF_PI);
+  text("Arrival", 0, 0);
+  pop();
+
   for (const c of CONTINENTI) {
-    disegnaArco("sinistra", archiSx[c].u1, archiSx[c].u2, r, COLORI[c]); //"" metto la stringa, la differenzio da un valore
-    disegnaArco("destra", archiDx[c].u1, archiDx[c].u2, r, COLORI[c]); //u1 indica punto di inizio e u2 punto di fine
+    disegnaArco("sinistra", archiSx[c].u1, archiSx[c].u2, r, COLORI[c]);
+    disegnaArco("destra", archiDx[c].u1, archiDx[c].u2, r, COLORI[c]);
     disegnaEtichetta("sinistra", (archiSx[c].u1 + archiSx[c].u2) / 2, r, c);
     disegnaEtichetta("destra", (archiDx[c].u1 + archiDx[c].u2) / 2, r, c);
   }
