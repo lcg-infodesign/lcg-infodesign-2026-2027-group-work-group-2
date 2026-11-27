@@ -1,0 +1,13 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #190A32;
+}
+
+canvas {
+  display: block;
+}
+
+.loading-indicator {
+  display: none !important; /*per tigliere stellina p5 di caricamento*/
+}
