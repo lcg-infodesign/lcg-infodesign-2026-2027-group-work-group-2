@@ -1,6 +1,7 @@
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   workSans = await loadFont("assets/WorkSans-Bold.ttf");
+  calcolaRigheUniche(tabella);
 }
 
 const parametri = getURLParams();

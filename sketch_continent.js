@@ -48,6 +48,7 @@ async function setup() {
 
   createCanvas(windowWidth, windowHeight);
   tabella = await loadTable("assets/olympic.csv", ",", true);
+  calcolaRigheUniche(tabella);
   workSans = await loadFont("assets/WorkSans-Bold.ttf");
   montserrat = await loadFont("assets/MontserratAlternates-Bold.ttf");
 
@@ -72,7 +73,7 @@ function calcolaAnniDisattivi() {
     const conteggio = {};
     let trovato = false;
 
-    for (let i = 0; i < tabella.getRowCount(); i++) {
+    for (const i of righeUniche) {
       if (tabella.getString(i, "year") !== a.anno) continue;
       if (tabella.getString(i, "continent_ origin") !== continenteDa) continue;
       if (tabella.getString(i, "continent_ destination") !== continenteA) continue;
@@ -106,7 +107,7 @@ function contaFlussi() {
   const conteggio = {}; // "paeseNascita|paeseGara" dà il numero
 
   //controllo
-  for (let i = 0; i < tabella.getRowCount(); i++) {
+  for (const i of righeUniche) {
     if (tabella.getString(i, "year") !== annoScelto) continue;
     if (tabella.getString(i, "continent_ origin") !== continenteDa) continue;
     if (tabella.getString(i, "continent_ destination") !== continenteA) continue;

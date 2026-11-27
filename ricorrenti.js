@@ -257,3 +257,20 @@ function disegnaLinkGlobal() {
 
   bottoniNav.push({ link: "index.html", x, y: y - h / 2, w: wVoce, h });
 }
+
+let righeUniche = [];
+function calcolaRigheUniche(t) {
+  righeUniche = [];
+  const visti = {};
+  for (let r = 0; r < t.getRowCount(); r++) {
+    const verifica =
+      t.getString(r, "year") + "|" +
+      t.getString(r, "gapminder_countryname") + "|" +
+      t.getString(r, "used_name");
+
+      if (visti[verifica]) continue;
+      visti[verifica] = true;
+      righeUniche.push(r);  
+  }
+
+}

@@ -37,6 +37,7 @@ let nastri = [];
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   tabella = await loadTable("assets/olympic.csv", ",", true);
+  calcolaRigheUniche(tabella);
   workSans = await loadFont("assets/WorkSans-Bold.ttf");
 
   // se torno qui dalla pagina di un nastro, ritorno all'anno che stavo visualizzando (salvato in ricorrenti.js)
@@ -67,7 +68,7 @@ function contaFlussi() {
 
   //conto gli atleti che migrano
   const conteggio = {};
-  for (let i = 0; i < tabella.getRowCount(); i++) {
+  for (const i of righeUniche) {
     if (tabella.getString(i, "year") !== annoScelto) continue;
     const provenienza = tabella.getString(i, "continent_ origin");
     const arrivo = tabella.getString(i, "continent_ destination");
