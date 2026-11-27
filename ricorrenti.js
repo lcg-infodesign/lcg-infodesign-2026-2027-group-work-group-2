@@ -151,11 +151,8 @@ function mousePressed() {
       window.location.href = b.link;
     }
   }
-
-  
 }
 
-// nome del file ed etichette nome mostrato nel breadcrumb
 const PAGINE_SITO = {
   "introduction.html": "Introduction",
   "index.html": "Global",
@@ -165,13 +162,26 @@ const PAGINE_SITO = {
   "aboutDataset.html": "About Dataset",
 };
 
+const PAGINE_ESCLUSE_BREADCRUMB = ["aboutUs.html", "aboutDataset.html"]; //le due pagine About non compaiono mai nel breadcrumb, all'interno delle pagine compare solo "Global"
 let percorso = []; // file visitati in ordine
 let bottoniBreadcrumb = []; // posizione delle voci cliccabili
 
-// nome del file della pagina aperta (es. "global.html")
+//pagina corrente
 function fileCorrente() {
   const file = window.location.pathname.split("/").pop(); //spiegato da Claude per segnare il percorso
   return file === "" ? "index.html" : file;
+}
+
+// ripulisce l'array tenendo solo pagine valide ed escludendo aboutUs e aboutDataset
+function filtraPercorso(lista) {
+  if (!Array.isArray(lista)) return []; // se non è un array ritorna vuoto
+  return lista.filter(p => PAGINE_SITO[p] && !PAGINE_ESCLUSE_BREADCRUMB.includes(p)); // rimuove pagine non censite o escluse
+}
+
+// mette sempre "Introduction" come prima voce del breadcrumb 
+function assicuraIntroductionInTesta(lista) {
+  const senzaIntro = lista.filter(p => p !== "introduction.html"); //evita duplicati
+  return ["introduction.html", ...senzaIntro]; //inserisce introduction all'inizio
 }
 
 // aggiorna il percorso all'apertura della pagina
@@ -179,83 +189,100 @@ function aggiornaPercorso() {
   const file = fileCorrente();
   if (!PAGINE_SITO[file]) return;
 
+  if (PAGINE_ESCLUSE_BREADCRUMB.includes(file)) { //su aboutUs e aboutDataset non compare Introduction
+    percorso = []; // azzera il percorso locale
+    return; // non modifica il percorso salvato in sessionStorage
+  }
+
   try {
-    percorso = JSON.parse(sessionStorage.getItem("percorso")) || []; //spiegato da Claude per selezionare il percorso
+    percorso = filtraPercorso(JSON.parse(sessionStorage.getItem("percorso")) || []); //spiegato da Claude per selezionare il percorso
   } catch (e) {
     percorso = [];
   }
 
+  percorso = assicuraIntroductionInTesta(percorso); // assicura che Introduction sia sempre la prima voce
+
   const i = percorso.indexOf(file);
-  if (i !== -1) percorso = percorso.slice(0, i + 1); // già visitata/se torno in dietro: la tolgo
-  else percorso.push(file); // nuova: la aggiungo in fondo
+  if (i !== -1) percorso = percorso.slice(0, i + 1); //pagina già visitata o se torno in dietro, la pagina viene rimossa
+  else percorso.push(file); //se è una pagina nuova viene aggiunta in fondo
 
   try {
     sessionStorage.setItem("percorso", JSON.stringify(percorso));
   } catch (e) {}
 }
-aggiornaPercorso(); // al caricamento della pagina
+aggiornaPercorso(); //al caricamento della pagina
+
+window.addEventListener("pageshow", () => { //riallinea quando si torna indietro con la freccia del browser
+  aggiornaPercorso(); // aggiorna e ripulisce il percorso anche da cache
+});
+
+function disegnaVoceBreadcrumb(testo, link, x, y, h, dimensione, cliccabile, grigia) { //disegna una voce del breadcrumb e gestisce il click
+  const sopra = mouseX > x && mouseX < x + textWidth(testo) && mouseY > y - h / 2 && mouseY < y + h / 2; //controlla se il mouse è sopra il testo
+
+  if (grigia) fill(150); //se è la pagina corrente usa il grigio
+  else if (sopra) fill("#5c45d2"); //se c'è il mouse sopra usa il colore hover
+  else fill(255); //altrimenti usa il bianco
+
+  textSize(dimensione); //imposta la dimensione del carattere
+  text(testo, x, y); //disegna la stringa nella posizione indicata
+
+  if (cliccabile) { //registra l'area cliccabile solo se la voce può aprire una pagina
+    bottoniBreadcrumb.push({ link, x, y: y - h / 2, w: textWidth(testo), h }); //salva coordinate e link per mousePressed
+  }
+
+  return textWidth(testo); //restituisce la larghezza disegnata per spostare la x successiva
+}
 
 function disegnaBreadCrumb() {
+  const file = fileCorrente(); // egge la pagina aperta
+
+  if (PAGINE_ESCLUSE_BREADCRUMB.includes(file)) { //in aboutUs e aboutDataset viene mostrato sempre e solo Global
+    disegnaLinkGlobal(); //disegna il link verso Index
+    return; //esce prima di disegnare il breadcrumb
+  }
+
+  percorso = assicuraIntroductionInTesta(filtraPercorso(percorso)); //doppia sicurezza contro residui di pagine escluse
+
   const { margine, h } = griglia();
   let x = margine;
-  const y = margine * 0.5 + h / 2; // come About
+  const y = margine * 0.5 + h / 2; //come About
   const dimensione = h * 0.45; 
-  const gap = dimensione * 0.6; // spazio prima e dopo il >
+  const gap = dimensione * 0.6; //spazio prima e dopo il >
 
   bottoniBreadcrumb = [];
   textFont(workSans);
-  textSize(dimensione);
   textAlign(LEFT, CENTER);
   noStroke();
 
   for (let i = 0; i < percorso.length; i++) {
     const nome = PAGINE_SITO[percorso[i]];
     const ultima = i === percorso.length - 1;
-    const conFreccia = i > 0; // la prima voce non ha la freccia davanti
 
-    // larghezza totale della voce: > + nome
-    const wFreccia = conFreccia ? textWidth(">") + gap : 0;
-    const wVoce = wFreccia + textWidth(nome);
+    if (i > 0) { // per tutte le voci dopo la prima disegna la freccia separatrice
+      fill(ultima ? 150 : 255); // colora la freccia come la voce corrente o precedente
+      textSize(dimensione); // imposta la dimensione della freccia
+      text(">", x, y); // disegna il carattere separatore
+      x += textWidth(">") + gap; // sposta x oltre la freccia e lo spazio
+    }
 
-    const sopra = mouseX > x && mouseX < x + wVoce && mouseY > y - h / 2 && mouseY < y + h / 2;
-
-    // colore unico per freccia e parola
-    if (ultima) fill(150); // pagina corrente: grigia
-    else if (sopra) fill("#5c45d2");  // hover
-    else fill(255); // pagina passata: bianca
-
-    if (conFreccia) text(">", x, y);
-    text(nome, x + wFreccia, y);
-
-    // cliccabile solo se non è la pagina corrente
-    if (!ultima) bottoniBreadcrumb.push({ link: percorso[i], x, y: y - h / 2, w: wVoce, h });
-
-    x += wVoce + gap; // spazio prima della voce successiva
+    const wNome = disegnaVoceBreadcrumb(nome, percorso[i], x, y, h, dimensione, !ultima, ultima); // disegna il nome della pagina e ottiene la larghezza
+    x += wNome + gap; // spazio prima della voce successiva
   }
 }
 
 function disegnaLinkGlobal() {
   const { margine, h } = griglia();
   let x = margine;
-  const y = margine * 0.5 + h / 2; // come About
+  const y = margine * 0.5 + h / 2; //come About
   const dimensione = h * 0.45;
   const nome = "Global";
 
   bottoniBreadcrumb = [];
   textFont(workSans);
-  textSize(dimensione);
   textAlign(LEFT, CENTER);
   noStroke();
 
-  const wVoce = textWidth(nome);
-  const sopra = mouseX > x && mouseX < x + wVoce && mouseY > y - h / 2 && mouseY < y + h / 2;
-
-  if (sopra) fill("#5c45d2"); // hover
-  else fill(255); // cliccabile: bianca
-
-  text(nome, x, y);
-
-  bottoniNav.push({ link: "index.html", x, y: y - h / 2, w: wVoce, h });
+  disegnaVoceBreadcrumb(nome, "index.html", x, y, h, dimensione, true, false); //disegna Global sempre cliccabile e bianco
 }
 
 let righeUniche = [];

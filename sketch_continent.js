@@ -43,8 +43,11 @@ let nastri = [];
 
 async function setup() {
   parametri = getURLParams();
-  continenteDa = parametri.da;
-  continenteA = parametri.a;
+  continenteDa = parametri.da || sessionStorage.getItem("flussoDa"); // ecupera il continente di partenza dall'URL (se arrivo dalla pagina comparison) o da sessionStorage (se vado da comparison a continents)
+  continenteA = parametri.a || sessionStorage.getItem("flussoA"); //fa la stessa cosa con il continente di arrivo
+
+  if (parametri.da) sessionStorage.setItem("flussoDa", parametri.da); //salva il continente di partenza se passato nell'URL
+  if (parametri.a) sessionStorage.setItem("flussoA", parametri.a); //fa la stessa cosa con quello di arrivo
 
   createCanvas(windowWidth, windowHeight);
   tabella = await loadTable("assets/olympic.csv", ",", true);
@@ -52,7 +55,8 @@ async function setup() {
   workSans = await loadFont("assets/WorkSans-Bold.ttf");
   fontTitolo = await loadFont("assets/MontserratAlternates-Bold.ttf");
 
-  const annoSalvato = sessionStorage.getItem("anno") || parametri.anno;
+  const annoSalvato = parametri.anno || sessionStorage.getItem("anno"); //legge l'anno dall'URL o da sessionStorage
+  if (parametri.anno) sessionStorage.setItem("anno", parametri.anno); //aggiorna l'anno salvato se presente nell'URL
   if (ANNI.some((a) => a.anno === annoSalvato)) annoScelto = annoSalvato;
   
   calcolaAnniDisattivi();
@@ -210,6 +214,7 @@ function misure() {
 function draw() {
   background(BG);
   if (!tabella) return;
+  if (!continenteDa || !continenteA) return; // evita errori in draw se mancano i continenti
   //da ricorrenti.js
   disegnaBottoni();
   disegnaNav();
