@@ -315,16 +315,29 @@ const SEPARATORE = " → "; // tra partenza e arrivo (per tornare al trattino: "
 // restituisce null se manca o se i nomi non sono continenti veri
 function flussoDaIndirizzo() {
   const parametri = new URLSearchParams(window.location.search);
-  const da = parametri.get("da");
-  const a = parametri.get("a");
+
+  const da = parametri.get("da") || sessionStorage.getItem("flussoDa");//continente di partenza dall'URL, se manca quello salvato da sketch_continent.js
+  const a = parametri.get("a") || sessionStorage.getItem("flussoA");//fa la stessa cosa con il continente di arrivo
   if (!CONTINENTI_TITOLO.includes(da) || !CONTINENTI_TITOLO.includes(a)) return null;
   return { da, a };
 }
-
+// legge dall'indirizzo i due paesi cliccati nel sankey: comparison.html?da=Brazil&a=Portugal
+// restituisce null se ne manca uno
+function paesiDaIndirizzo() {
+  const parametri = new URLSearchParams(window.location.search);
+  const da = (parametri.get("da") || "").trim(); // trim toglie gli spazi ai bordi (nel csv c'è "Hong Kong SAR, China ")
+  const a = (parametri.get("a") || "").trim();
+  if (da === "" || a === "") return null;
+  return { da, a };
+}
 // seconda parte del titolo: cambia in base alla pagina e al flusso cliccato
 function sottotitolo() {
   const file = fileCorrente();
-
+ if (file === "comparison.html") {
+    const paesi = paesiDaIndirizzo();
+    if (!paesi) return ""; // indirizzo senza paesi: resta solo "Migration flow"
+    return paesi.da + SEPARATORE + paesi.a; // es. Brazil → Portugal
+  }
   if (file === "continent.html") {
     const flusso = flussoDaIndirizzo();
     if (!flusso) return ""; // indirizzo senza flusso valido: resta solo "Migration flow"
@@ -358,6 +371,9 @@ function disegnaTitolo() {
   //const spazioMax = width - 2 * margine - w - margine;
   //const larghezza = textWidth(testoTitolo());
   //if (larghezza > spazioMax) dimensione *= spazioMax / larghezza;
+  // solo se il titolo esce dallo schermo (nomi di paesi lunghi) si rimpicciolisce per starci tra i due margini
+  const larghezzaTitolo = textWidth(testoTitolo());
+  if (larghezzaTitolo > width - 2 * margine) dimensione *= (width - 2 * margine) / larghezzaTitolo;
 
   noStroke();
   fill(255);

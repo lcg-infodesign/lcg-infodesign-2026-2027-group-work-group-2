@@ -32,6 +32,7 @@ async function setup() {
   tabella = await loadTable("assets/olympic.csv", ",", true);
   calcolaRigheUniche(tabella);
   workSans = await loadFont("assets/WorkSans-Bold.ttf");
+  fontTitolo = await loadFont("assets/MontserratAlternates-Bold.ttf"); // font del titolo (ricorrenti.js)
   const parametri = getURLParams();
   paeseDa = decodeURIComponent(parametri.da);
   paeseA = decodeURIComponent(parametri.a);
@@ -134,6 +135,7 @@ function draw() {
   //da ricorrenti.js
   disegnaNav();
   disegnaBreadCrumb();
+  disegnaTitolo(); // "Migration flow" + paesi cliccati (ricorrenti.js)
   disegnaBottoni();
 
   disegnaPallini(); 
